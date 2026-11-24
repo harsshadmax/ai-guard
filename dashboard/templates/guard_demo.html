@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Guard demo · AI tool guard{% endblock %}
+{% block main %}
+<section class="intro"><p class="muted small intro-row">AI tool guard · SIMULATED</p>
+<h1>The same attack, without and with the guard</h1>
+<p class="muted">A simulated assistant that obeys any instruction it reads (as a hijacked LLM agent would) is given a harmless task.
+The content contains a hidden instruction. Left: no guard. Right: every tool call goes through Shadow-Run. The secrets are planted fakes;
+"leaked" means a canary or customer record reached the local attacker sink.</p></section>
+<section class="card wide">
+  <form id="demo-form" class="whatif">
+    <label class="grow">Scenario <select name="scenario">{% for id, sc in scenarios.items() %}<option value="{{ id }}">{{ sc.title }}</option>{% endfor %}</select></label>
+    <button class="btn primary" type="submit"><svg class="i" aria-hidden="true"><use href="#i-play"/></svg>Run without and with the guard</button>
+  </form>
+  <p id="demo-error" class="error" hidden></p>
+</section>
+<div class="split" id="demo-split" hidden>
+  <section class="card"><div class="card-head"><h2>Guard OFF</h2><span id="off-verdict"></span></div><ol class="tx" id="off-tx"></ol>
+    <h3>Arrived at the attacker's sink</h3><pre class="sinkbox" id="off-sink"></pre></section>
+  <section class="card"><div class="card-head"><h2>Guard ON</h2><span id="on-verdict"></span></div><ol class="tx" id="on-tx"></ol>
+    <h3>Arrived at the attacker's sink</h3><pre class="sinkbox" id="on-sink"></pre>
+    <p class="small"><a id="on-trail" href="/guard/incidents">Open the attack trail →</a></p></section>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+<section class="card wide">
+<div class="card-head"><h2>Waiting for you</h2><span class="muted small">{{ items | length }} pending</span></div>
+{% if not items %}<p class="empty">Nothing is waiting for approval.</p>{% endif %}
+<div class="approvals">
+{% for i in items %}
+  <article class="approval">
+    <div class="step-head"><span class="chip warn">ASK</span><span class="mono strong">{{ i.tool }}</span><span class="spacer"></span><span class="mono small muted">auto-deny at {{ i.expires_at | hms }} UTC</span></div>
+    <p class="mono small">{% for k, v in i.args.items() %}{{ k }}={{ (v|string)[:120] }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
+    <p>{{ i.reason }}</p>
+    <div class="row-btns"><button class="btn small primary" type="button" data-approve="{{ i.id }}">Approve once</button>
+      <button class="btn small ghost" type="button" data-deny="{{ i.id }}">Deny</button>
+      <a class="small" href="/guard/session/{{ i.session_id | urlq }}">Attack trail →</a></div>
+  </article>
+{% endfor %}
+</div>
+</section>
+{% if recent %}<section class="card wide"><div class="card-head"><h2>Recent decisions</h2></div>
+<div class="table-wrap"><table class="gtable"><thead><tr><th>Created</th><th>Tool</th><th>State</th><th>By</th></tr></thead><tbody>
+{% for r in recent %}<tr><td class="mono">{{ r.created_at | hms }}</td><td class="mono">{{ r.tool }}</td>
+<td>{% if r.state == 'approved' %}<span class="chip ok small">approved</span>{% elif r.state == 'pending' %}<span class="chip warn small">pending</span>{% else %}<span class="chip bad small">{{ r.state }}</span>{% endif %}</td>
+<td class="small">{{ r.resolved_by or "" }}</td></tr>{% endfor %}</tbody></table></div></section>{% endif %}

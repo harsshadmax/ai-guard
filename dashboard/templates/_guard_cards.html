@@ -1,0 +1,15 @@
+<div class="cards gcards">
+  <div class="tile"><div class="tile-name"><small>Tool calls inspected</small><b class="big">{{ c.calls }}</b></div></div>
+  <div class="tile tone-bad"><div class="tile-name"><small>Blocked</small><b class="big bad">{{ c.blocked }}</b></div></div>
+  <div class="tile tone-warn"><div class="tile-name"><small>Asked a human</small><b class="big warn">{{ c.asked }}</b>{% if c.pending_approvals %}<a class="small" href="/guard/approvals">{{ c.pending_approvals }} pending</a>{% endif %}</div></div>
+  <div class="tile tone-ok"><div class="tile-name"><small>Allowed</small><b class="big ok">{{ c.allowed }}</b></div></div>
+  <div class="tile"><div class="tile-name"><small>Injected documents seen</small><b class="big">{{ c.injections }}</b></div></div>
+  <div class="tile"><div class="tile-name"><small>Guard latency p50 / p95 / p99</small>
+    <b class="big">{% if c.p95_ms is not none %}{{ c.p50_ms }} / {{ c.p95_ms }} / {{ c.p99_ms }} ms{% else %}n/a{% endif %}</b></div></div>
+</div>
+{% if rules %}
+<div class="card"><div class="card-head"><h2>Why calls were stopped</h2><span class="muted small">findings on BLOCK and ASK verdicts</span></div>
+<ul class="rulebars">{% set top = rules[0].n %}{% for r in rules %}
+  <li><span class="rule mono">{{ r.rule_id }}</span><span class="bar"><i style="width: {{ (100 * r.n / top) | round(0) }}%"></i></span><span class="n">{{ r.n }}</span></li>
+{% endfor %}</ul></div>
+{% endif %}

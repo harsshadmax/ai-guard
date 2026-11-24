@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Policy & RBAC · AI tool guard{% endblock %}
+{% block main %}
+<section class="intro"><p class="muted small intro-row">AI tool guard</p><h1>Policy &amp; RBAC</h1>
+<p class="muted">Loaded from <code>policies/guard.yaml</code>. Every rule is evaluated and the strictest decision wins. A call no rule covers is asked (fail closed); a policy error blocks.
+{% if lint %}<span class="chip bad">Policy problems: {{ lint | join("; ") }}</span>{% else %}<span class="chip ok">Policy lint clean</span>{% endif %}</p></section>
+
+<section class="card wide"><div class="card-head"><h2>What would happen if…</h2><span class="muted small">Nothing is executed or stored</span></div>
+<form id="whatif" class="whatif">
+  <label>Role <select name="role">{% for r in pol.roles %}<option>{{ r }}</option>{% endfor %}</select></label>
+  <label>Session has read <select name="taint"><option value="trusted">only the user's prompt</option><option value="internal">internal files</option><option value="untrusted" selected>untrusted content</option></select></label>
+  <label>Tool <select name="tool">{% for t in ["send_email", "read_file", "fetch_url", "run_command", "query", "delete_file", "write_file", "get_weather"] %}<option>{{ t }}</option>{% endfor %}</select></label>
+  <label class="grow">Arguments (JSON) <input name="args" class="mono" value='{"to": "attacker@example.com", "body": "hello"}' maxlength="4000"></label>
+  <button class="btn primary small" type="submit">Evaluate</button>
+</form>
+<div id="whatif-out" class="whatif-out" hidden></div>
+</section>
+
+<section class="card wide"><div class="card-head"><h2>Roles</h2></div>
+<div class="table-wrap"><table class="gtable"><thead><tr><th>Role</th><th>Tools</th><th>Paths</th><th>Recipients</th><th>Calls/min</th></tr></thead><tbody>
+{% for name, r in pol.roles.items() %}<tr><td class="strong">{{ name }}</td><td class="mono small">{{ r.tools | join(", ") }}</td><td class="mono small">{{ (r.paths or []) | join(", ") }}</td>
+<td class="mono small">{{ (r.recipients or []) | join(", ") or "none" }}</td><td>{{ r.max_calls_per_min or "no limit" }}</td></tr>{% endfor %}
+</tbody></table></div></section>
+
+<section class="card wide"><div class="card-head"><h2>Rules</h2></div>
+<div class="table-wrap"><table class="gtable"><thead><tr><th>Rule</th><th>When</th><th>Decision</th></tr></thead><tbody>
+{% for r in pol.rules %}<tr><td class="mono">{{ r.id }}</td><td class="mono small">{% for k, v in r.when.items() %}{{ k }}: {% if v is string or v is number %}{{ v }}{% else %}{{ v | join(", ") }}{% endif %}{% if not loop.last %} · {% endif %}{% endfor %}</td>
+<td>{% if r.decision == 'BLOCK' %}<span class="chip bad">BLOCK</span>{% elif r.decision in ('ASK', 'ESCALATE') %}<span class="chip warn">ASK</span>{% else %}<span class="chip ok">ALLOW</span>{% endif %}</td></tr>{% endfor %}
+</tbody></table></div></section>
+
+<section class="card wide"><div class="card-head"><h2>Destinations and trust</h2></div>
+<p class="small"><b>Internal:</b> <span class="mono">{{ pol.destinations.internal | join(", ") }}</span></p>
+<p class="small"><b>Allow-listed:</b> <span class="mono">{{ pol.destinations.allowlisted | join(", ") }}</span></p>
+<p class="small"><b>Deny-listed:</b> <span class="mono">{{ pol.destinations.denylisted | join(", ") }}</span></p>
+<p class="small"><b>Untrusted paths:</b> <span class="mono">{{ pol.trust.untrusted_paths | join(", ") }}</span> · web pages, inbound mail and third-party plugin output are always untrusted.</p>
+</section>
+{% endblock %}

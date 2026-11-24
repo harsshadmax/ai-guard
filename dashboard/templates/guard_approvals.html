@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Approvals · AI tool guard{% endblock %}
+{% block main %}
+<section class="intro"><p class="muted small intro-row">AI tool guard</p><h1>Approvals</h1>
+<p class="muted">Calls the policy marked <span class="chip warn">ASK</span> wait here. Approve runs the call once; deny, or no answer before the timeout, never runs it.</p></section>
+<div id="guard-approvals" hx-get="/ui/guard/approvals" hx-trigger="load, every 3s, approvals-changed from:body" hx-swap="innerHTML"><p class="empty">Loading…</p></div>
+{% endblock %}

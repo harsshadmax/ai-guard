@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Tool integrity · AI tool guard{% endblock %}
+{% block main %}
+<section class="intro"><p class="muted small intro-row">AI tool guard</p><h1>Tool integrity</h1>
+<p class="muted">Third-party tools are pinned on first use (hash of description and input schema). If a tool changes after approval (a "rug pull"), carries instructions in its description, or shadows another tool's name, it is quarantined until an admin re-approves it.</p></section>
+<section class="card wide"><div class="table-wrap"><table class="gtable"><thead><tr><th>Tool</th><th>Server</th><th>Class</th><th>Status</th><th>Description (as advertised now)</th><th>Pinned hash</th><th></th></tr></thead><tbody>
+{% for t in tools %}<tr>
+<td class="mono strong">{{ t.tool }}</td><td class="small">{{ t.server }}</td><td class="small">{{ t.tool_class }}</td>
+<td>{% if t.server == 'builtin' %}<span class="chip small">built-in</span>{% elif t.quarantined %}<span class="chip bad small">quarantined</span>{% elif t.changed_now %}<span class="chip warn small">changed since pin</span>{% elif t.approved %}<span class="chip ok small">approved</span>{% else %}<span class="chip small">not used yet</span>{% endif %}</td>
+<td class="small">{{ t.description[:220] }}</td><td class="mono small">{{ t.desc_sha256 }}</td>
+<td>{% if t.quarantined %}<button class="btn ghost small" type="button" data-approve-tool="{{ t.tool }}">Re-approve</button>{% endif %}</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% endblock %}

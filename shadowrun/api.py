@@ -42,6 +42,10 @@ async def lifespan(app):
     p.write_text(TOKEN)
     os.chmod(p, 0o600)
     db.init_db()
+    audit.verify_on_startup()
+    from guard import registry as guard_registry  # the AI tool guard needs its demo workspace
+    if not guard_registry.config.GUARD_ROOT.exists():
+        guard_registry.reset_workspace()
     yield
 
 
@@ -292,4 +296,11 @@ from fastapi.staticfiles import StaticFiles  # noqa: E402
 from . import ui  # noqa: E402
 
 app.include_router(ui.router)
+
+# AI tool guard (PS-CYB-02): proxy API + dashboard pages
+from guard import api as guard_api  # noqa: E402
+from guard import ui as guard_ui  # noqa: E402
+
+app.include_router(guard_api.router)
+app.include_router(guard_ui.router)
 app.mount("/static", StaticFiles(directory=str(config.ROOT / "dashboard" / "static")), name="static")

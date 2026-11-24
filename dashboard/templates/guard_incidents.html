@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Attack trails · AI tool guard{% endblock %}
+{% block main %}
+<section class="intro"><p class="muted small intro-row">AI tool guard</p><h1>Attack trails</h1>
+<p class="muted">One row per agent session. Open a session to see the document it read, the hidden instruction, every tool call it then attempted, and the audit entries.</p></section>
+<section class="card wide">
+{% if not incidents %}<p class="empty">No sessions yet.</p>{% else %}
+<div class="table-wrap"><table class="gtable"><thead><tr><th>Started</th><th>Task</th><th>Agent</th><th>Role</th><th>Guard</th><th>Taint</th><th>Calls</th><th>Blocked</th><th>Asked</th><th></th></tr></thead><tbody>
+{% for s in incidents %}<tr>
+<td class="mono">{{ s.created_at | hms }}</td><td>{{ (s.task or "")[:80] }}</td><td class="small">{{ s.agent_id }}</td><td class="small">{{ s.role }}</td>
+<td>{% if s.guard_on %}<span class="chip ok small">ON</span>{% else %}<span class="chip bad small">OFF</span>{% endif %}</td>
+<td>{% if s.max_taint == 'untrusted' %}<span class="chip bad small">untrusted</span>{% else %}<span class="chip small">{{ s.max_taint }}</span>{% endif %}</td>
+<td>{{ s.calls or 0 }}</td><td class="bad">{{ s.blocked or 0 }}</td><td class="warn">{{ s.asked or 0 }}</td>
+<td><a href="/guard/session/{{ s.id | urlq }}">Open →</a></td></tr>{% endfor %}
+</tbody></table></div>{% endif %}
+</section>
+{% endblock %}

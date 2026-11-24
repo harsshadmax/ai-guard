@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Attack trail · AI tool guard{% endblock %}
+{% block main %}
+{% set s = d.session %}
+<section class="intro"><p class="muted small intro-row"><a href="/guard/incidents">Attack trails</a> / {{ s.id }}</p>
+<h1>{{ s.task or "Agent session" }}</h1>
+<p class="muted">Agent <b>{{ s.agent_id }}</b> · role <b>{{ s.role }}</b> · guard {% if s.guard_on %}<span class="chip ok small">ON</span>{% else %}<span class="chip bad small">OFF</span>{% endif %}
+ · highest taint {% if s.max_taint == 'untrusted' %}<span class="chip bad small">untrusted</span>{% else %}<span class="chip small">{{ s.max_taint }}</span>{% endif %}</p></section>
+
+<ol class="trail">
+{% for c in d.calls %}
+  <li class="step {{ c.decision | lower }}">
+    <div class="step-head">
+      {% if c.decision == 'BLOCK' %}<span class="chip bad">BLOCK</span>{% elif c.decision == 'ASK' %}<span class="chip warn">ASK</span>{% elif c.decision == 'ALLOW' %}<span class="chip ok">ALLOW</span>{% else %}<span class="chip">NO GUARD</span>{% endif %}
+      <span class="mono strong">{{ c.tool }}</span>
+      <span class="mono small muted">{% for k, v in (c.args_redacted or {}).items() %}{{ k }}={{ (v|string)[:80] }}{% if not loop.last %}, {% endif %}{% endfor %}</span>
+      <span class="spacer"></span><span class="mono small muted">{{ c.created_at | hms }}{% if c.guard_on %} · {{ '%.1f' % c.latency_ms }} ms{% endif %}</span>
+    </div>
+    {% if c.decision in ('BLOCK', 'ASK') %}<p>{{ c.reason }}</p>{% endif %}
+    {% if c.findings %}<ul class="findings">{% for f in c.findings[:8] %}<li><span class="sev {{ f.severity }}">{{ f.severity }}</span><span class="rule">{{ f.rule_id }}</span>{{ f.message }}</li>{% endfor %}</ul>{% endif %}
+    {% if c.matched_rules %}<p class="small muted">Policy rules matched: <span class="mono">{{ c.matched_rules | join(", ") }}</span></p>{% endif %}
+  </li>
+  {% for src in d.sources if src.id in (c.source_ids or []) and c.executed %}
+  <li class="step source">
+    <div class="step-head"><span class="chip {{ 'bad' if src.trust == 'untrusted' else '' }} small">{{ src.trust }} content entered the AI's context</span> <span class="mono">{{ src.origin }}</span></div>
+    <p class="preview">{{ src.preview[:400] }}</p>
+    {% if src.hidden_text %}<p class="hidden-label">Hidden from the human reader, visible to the AI:</p><p><mark class="hidden-text">{{ src.hidden_text[:800] }}</mark></p>{% endif %}
+    {% for f in src.findings[:6] %}<p class="small"><span class="sev high">{{ f.rule_id }}</span> {{ f.message }}</p>{% endfor %}
+  </li>
+  {% endfor %}
+{% endfor %}
+</ol>
+
+<section class="card wide">
+  <div class="card-head"><h2>Audit entries for this session</h2>
+    <span>{% if chain.ok %}<span class="chip ok">Whole chain intact · {{ chain.checked }} entries</span>{% else %}<span class="chip bad">Chain broken at row {{ chain.broken_id }}</span>{% endif %}</span></div>
+  <div class="table-wrap"><table class="gtable"><thead><tr><th>#</th><th>Time</th><th>Event</th><th>Hash</th></tr></thead><tbody>
+  {% for a in d.audit %}<tr><td>{{ a.id }}</td><td class="mono">{{ a.ts | hms }}</td><td class="mono">{{ a.event_type }}</td><td class="mono small">{{ a.hash[:24] }}…</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Live feed · AI tool guard{% endblock %}
+{% block main %}
+<section class="intro">
+  <p class="muted small intro-row">AI tool guard</p>
+  <div class="intro-head"><h1>Every tool call, inspected before it runs</h1></div>
+  <p class="muted">Agents send tool calls to <code>POST /api/v1/guard/call</code> (or through the MCP proxy). The guard tracks where
+    content came from, scans for prompt injection and secrets, applies RBAC and policy, and answers
+    <span class="chip ok">ALLOW</span> <span class="chip warn">ASK</span> or <span class="chip bad">BLOCK</span> in milliseconds.</p>
+</section>
+<div id="guard-cards" hx-get="/ui/guard/cards" hx-trigger="load, every 3s" hx-swap="innerHTML"><p class="empty">Loading…</p></div>
+<section class="card wide">
+  <div class="card-head"><h2>Live tool calls</h2><span class="muted small">Newest first · refreshes every 2 s</span></div>
+  <div id="guard-feed" hx-get="/ui/guard/feed" hx-trigger="load, every 2s" hx-swap="innerHTML"><p class="empty">Loading…</p></div>
+</section>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% if not rows %}<p class="empty">No tool calls yet. Open the <a href="/guard/demo">guard demo</a> and run an attack.</p>{% else %}
+<div class="table-wrap"><table class="gtable">
+<thead><tr><th>Time</th><th>Verdict</th><th>Tool</th><th>Arguments (redacted)</th><th>Taint</th><th>Role</th><th>Rules</th><th>Latency</th></tr></thead>
+<tbody>{% for r in rows %}
+<tr>
+  <td class="mono">{{ r.created_at | hms }}</td>
+  <td>{% if r.decision == 'BLOCK' %}<span class="chip bad">BLOCK</span>{% elif r.decision == 'ASK' %}<span class="chip warn">ASK</span>{% elif r.decision == 'ALLOW' %}<span class="chip ok">ALLOW</span>{% else %}<span class="chip">NO GUARD</span>{% endif %}</td>
+  <td class="mono">{{ r.tool }}</td>
+  <td class="mono args">{% for k, v in (r.args_redacted or {}).items() %}{{ k }}={{ (v|string)[:60] }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+  <td>{% if r.taint == 'untrusted' %}<span class="chip bad small">untrusted</span>{% elif r.taint == 'internal' %}<span class="chip small">internal</span>{% else %}<span class="chip ok small">clean</span>{% endif %}</td>
+  <td class="small">{{ r.role }}</td>
+  <td class="small mono">{{ r.rules[:4] | join(", ") }}{% if r.rules|length > 4 %} +{{ r.rules|length - 4 }}{% endif %}</td>
+  <td class="mono small">{% if r.guard_on %}{{ '%.1f' % r.latency_ms }} ms{% else %}n/a{% endif %}</td>
+</tr>
+{% if r.decision in ('BLOCK', 'ASK') %}<tr class="explain"><td></td><td colspan="7">{{ r.reason }} <a href="/guard/session/{{ r.session_id | urlq }}">Attack trail →</a></td></tr>{% endif %}
+{% endfor %}</tbody></table></div>{% endif %}

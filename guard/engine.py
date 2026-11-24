@@ -41,6 +41,10 @@ def events_since(last_id: int) -> list[dict]:
 
 
 # ------------------------------------------------------------------ explanation for humans
+def _quote(span: dict | None, n: int = 200) -> str:
+    t = ((span or {}).get("context") or (span or {}).get("text") or "").strip()
+    t = t[:n] + ("…" if len(t) > n else "")
+    return t.rstrip(" .")
 def explain(v: Verdict, call: ToolCall, session: Session) -> str:
     if v.decision == "ALLOW":
         return f"Allowed {call.tool}."
@@ -53,7 +57,7 @@ def explain(v: Verdict, call: ToolCall, session: Session) -> str:
     inj = next((f for f in v.findings if f.rule_id == "INJECTION_IN_SESSION"), None)
     if inj and inj.span:
         why.append(f"The content this assistant read ({inj.span.get('origin', 'a document')}) contained a hidden "
-                   f"instruction: “{(inj.span.get('context') or inj.span.get('text', ''))[:200]}”. "
+                   f"instruction: “{_quote(inj.span)}”. "
                    f"The request did not come from you.")
     elif ids & {"TAINTED_SENSITIVE_READ", "TAINTED_EXTERNAL_SEND", "TAINTED_DESTRUCTIVE"}:
         why.append("This session read untrusted content just before trying this action.")
@@ -167,7 +171,7 @@ def after_result(call: ToolCall, session: Session, spec, v: Verdict, res) -> Non
                 emit("alert", {"level": "warn", "session_id": session.id, "call_id": call.id,
                                "title": "Prompt injection detected in content",
                                "message": f"{_origin(call)} contains instructions aimed at the assistant: "
-                                          f"“{(top.span or {}).get('text', '')[:160]}”. "
+                                          f"“{_quote(top.span)}”. "
                                           f"Risky actions in this session are now restricted."})
     v.result = res
 
