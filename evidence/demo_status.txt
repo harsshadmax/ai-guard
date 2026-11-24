@@ -1,0 +1,15 @@
+doctor status   : PASS   check #bab2caf9c9   finished 18:09:34 UTC   age 81s
+  1. PASS  docker reachable, images present
+  2. PASS  shadowrun_net is internal
+  3. PASS  sandbox cannot reach internet
+  4. PASS  sandbox reaches sink:9000
+  5. PASS  strace sidecar records canary openat + connect
+  6. PASS  rootfs read-only, /tmp executable
+  7. PASS  pypiserver up, sink dir writable
+  8. PASS  package has no privileges and cannot reach the tracer
+  9. PASS  tracer collects the syscalls that bypass openat/connect
+
+latest verdicts (gate setup):
+  run #57b355287d01  csvtoolkit         ALLOW    5.3s   gated by doctor #bab2caf9c9 @ 18:09:34 (same check as now)   trace trusted=True sha256=29d9dceccaac
+  run #ba772b4ca519  report-export-pro  BLOCK    4.7s   gated by doctor #bab2caf9c9 @ 18:09:34 (same check as now)   trace trusted=True sha256=f8f47e014fa9
+  run #f235eb89b0cf  csvtoolkit         ALLOW    5.5s   gated by doctor #bab2caf9c9 @ 18:09:34 (same check as now)   trace trusted=True sha256=734443e8a25b

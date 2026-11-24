@@ -1,0 +1,105 @@
+{
+  "available": true,
+  "eval_run_id": "e3360929",
+  "disclaimer": "Small demo benchmark: 6 self-written, simulated packages, 3 runs each. It shows the mechanism works on simulated attacks, not real-world detection rates. Latency is dominated by container start and install time and was measured on this machine.",
+  "rows": [
+    {
+      "setup": "no_guard",
+      "attacks_prevented": 0,
+      "attacks_total": 3,
+      "false_positives": 0,
+      "benign_total": 3,
+      "leaked_tokens": 3,
+      "median_ms": null,
+      "max_ms": null
+    },
+    {
+      "setup": "name_check",
+      "attacks_prevented": 1,
+      "attacks_total": 3,
+      "false_positives": 0,
+      "benign_total": 3,
+      "leaked_tokens": 1,
+      "median_ms": null,
+      "max_ms": null
+    },
+    {
+      "setup": "shadowrun",
+      "attacks_prevented": 2,
+      "attacks_total": 3,
+      "false_positives": 0,
+      "benign_total": 3,
+      "leaked_tokens": 0,
+      "median_ms": 5313.24066849993,
+      "max_ms": 5710.427055000309
+    }
+  ],
+  "phases": {
+    "gate_ms": 0.02571599998191232,
+    "fetch_ms": 2.6174505001108628,
+    "hash_ms": 0.009819499837249168,
+    "sandbox_ms": 4888.855063499932,
+    "analyze_ms": 341.7990325001483,
+    "decide_ms": 2.4088010000014037
+  },
+  "matrix": {
+    "B1": {
+      "no_guard": "INSTALLED_NO_LEAK",
+      "name_check": "INSTALLED_NO_LEAK",
+      "shadowrun": "ALLOW"
+    },
+    "B2": {
+      "no_guard": "INSTALLED_NO_LEAK",
+      "name_check": "INSTALLED_NO_LEAK",
+      "shadowrun": "ALLOW"
+    },
+    "B3": {
+      "no_guard": "INSTALLED_NO_LEAK",
+      "name_check": "INSTALLED_NO_LEAK",
+      "shadowrun": "ALLOW"
+    },
+    "M1": {
+      "no_guard": "LEAKED",
+      "name_check": "LEAKED",
+      "shadowrun": "BLOCK"
+    },
+    "M2": {
+      "no_guard": "LEAKED",
+      "name_check": "BLOCKED_BY_NAME",
+      "shadowrun": "BLOCK"
+    },
+    "M3": {
+      "no_guard": "INSTALLED_NO_LEAK",
+      "name_check": "INSTALLED_NO_LEAK",
+      "shadowrun": "ALLOW"
+    }
+  },
+  "labels": {
+    "B1": {
+      "name": "tinyjson-utils",
+      "label": "Pure-Python wheel"
+    },
+    "B2": {
+      "name": "csvtoolkit",
+      "label": "Plain setup.py sdist"
+    },
+    "B3": {
+      "name": "gitversion",
+      "label": "Benign setup.py that runs git (false-positive test)"
+    },
+    "M1": {
+      "name": "report-export-pro",
+      "label": "Credential stealer in setup.py"
+    },
+    "M2": {
+      "name": "reqeusts",
+      "label": "Typosquat with persistence and exfiltration"
+    },
+    "M3": {
+      "name": "timekeeper-sync",
+      "label": "Time bomb (known miss)"
+    }
+  },
+  "repeats": 3,
+  "runs": 54
+}

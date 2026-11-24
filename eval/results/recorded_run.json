@@ -1,0 +1,140 @@
+{
+  "recorded_at": "2026-10-23T18:08:51+00:00",
+  "note": "SIMULATED scenario: simulated agent, simulated package, fake secrets, sink inside the sandbox network.",
+  "task": "Add CSV export to the report module.",
+  "duration_s": 15.9,
+  "without_shadowrun": {
+    "leaked_tokens": [
+      "CANARY-e0798fbaafbf-ssh"
+    ],
+    "sink_events": [
+      {
+        "method": "POST",
+        "path": "/collect",
+        "body": "-----BEGIN OPENSSH PRIVATE KEY-----\nCANARY-e0798fbaafbf-ssh\nWR6Pdm6GwcC1p/wdWSFMMU0uEhsjKwsZUVy03p69VkR4KPSAwUyA4EW0+gfU22Lfd2PmAnaSWRbC8/N5syZXkQBJHRwGSs0CJzbmKTv4AGhNJ5GUM5OkPqCV3aZlN1uAUgguC6XuzHUxzzsNmrBOtMroeOpjfIX4\n-----END OPENSSH PRIVATE KEY-----\n"
+      },
+      {
+        "method": "POST",
+        "path": "/collect",
+        "body": "-----BEGIN OPENSSH PRIVATE KEY-----\nCANARY-e0798fbaafbf-ssh\nWR6Pdm6GwcC1p/wdWSFMMU0uEhsjKwsZUVy03p69VkR4KPSAwUyA4EW0+gfU22Lfd2PmAnaSWRbC8/N5syZXkQBJHRwGSs0CJzbmKTv4AGhNJ5GUM5OkPqCV3aZlN1uAUgguC6XuzHUxzzsNmrBOtMroeOpjfIX4\n-----END OPENSSH PRIVATE KEY-----\n"
+      }
+    ]
+  },
+  "with_shadowrun": {
+    "report-export-pro": {
+      "decision": "BLOCK",
+      "label": "blocked",
+      "reason": "Blocked. CANARY_EXFIL: Canary secret reached the sink (CANARY-77d194e1574a-ssh); CANARY_READ: Package code opened canary file /home/sandbox/.ssh/id_rsa; NET_OUTBOUND: Outbound connect to 172.18.0.2:9000 during an offline install",
+      "matched_rules": [
+        "block_exfil",
+        "block_secrets"
+      ],
+      "findings": [
+        {
+          "id": 107,
+          "run_id": "20db847b7c76",
+          "rule_id": "CANARY_EXFIL",
+          "severity": "critical",
+          "message": "Canary secret reached the sink (CANARY-77d194e1574a-ssh)",
+          "evidence": {
+            "tokens": [
+              "CANARY-77d194e1574a-ssh"
+            ],
+            "method": "POST",
+            "path": "/collect"
+          }
+        },
+        {
+          "id": 108,
+          "run_id": "20db847b7c76",
+          "rule_id": "CANARY_READ",
+          "severity": "high",
+          "message": "Package code opened canary file /home/sandbox/.ssh/id_rsa",
+          "evidence": {
+            "path": "/home/sandbox/.ssh/id_rsa",
+            "syscall": "openat"
+          }
+        },
+        {
+          "id": 109,
+          "run_id": "20db847b7c76",
+          "rule_id": "NET_OUTBOUND",
+          "severity": "high",
+          "message": "Outbound connect to 172.18.0.2:9000 during an offline install",
+          "evidence": {
+            "addr": "172.18.0.2",
+            "port": 9000,
+            "syscall": "connect"
+          }
+        }
+      ],
+      "decision_ms": 5667.042811000101,
+      "phases": {
+        "gate_ms": 0.031013000352686504,
+        "fetch_ms": 2.847925999958534,
+        "hash_ms": 0.009701000180939445,
+        "sandbox_ms": 5225.549990000218,
+        "sandbox_package_container_ms": 305.33956500039494,
+        "sandbox_tracer_container_ms": 204.22771199991985,
+        "sandbox_attach_ms": 86.50910500000464,
+        "sandbox_traced_run_ms": 3870.7739699998456,
+        "sandbox_stop_tracer_ms": 149.00996899996244,
+        "sandbox_collect_ms": 259.4708179999543,
+        "analyze_ms": 350.013988000228,
+        "decide_ms": 2.7264579998700356
+      },
+      "sha256": "beb186fac008aef40e247f2b5da3b6f8e7c08286ea21ca1aff6ae4703a671cfd"
+    },
+    "csvtoolkit": {
+      "decision": "ALLOW",
+      "label": "allowed",
+      "reason": "No suspicious behaviour in the tested run (limited evidence).",
+      "matched_rules": [
+        "allow_clean"
+      ],
+      "findings": [],
+      "decision_ms": 5582.571584000107,
+      "phases": {
+        "gate_ms": 0.025223999728041235,
+        "fetch_ms": 2.5075559997276287,
+        "hash_ms": 0.007001000085438136,
+        "sandbox_ms": 5159.158925999691,
+        "sandbox_package_container_ms": 309.81354899995495,
+        "sandbox_tracer_container_ms": 224.8726230000102,
+        "sandbox_attach_ms": 87.5884090000909,
+        "sandbox_traced_run_ms": 3849.3641599998227,
+        "sandbox_stop_tracer_ms": 152.77282800025205,
+        "sandbox_collect_ms": 247.8458169998703,
+        "analyze_ms": 341.21257600008903,
+        "decide_ms": 2.4501069997313607
+      },
+      "sha256": "66a35f4a40433165695a27718fff9d801ef42c16e0fdda35499a44bea5a87cfc"
+    }
+  },
+  "agent_transcript": [
+    {
+      "kind": "PROPOSE",
+      "message": "Task: Add CSV export to the report module. I will use `report-export-pro` for the CSV export.",
+      "run_id": null
+    },
+    {
+      "kind": "BLOCKED_NOTICE",
+      "message": "`report-export-pro` was blocked by Shadow-Run: Blocked. CANARY_EXFIL: Canary secret reached the sink (CANARY-77d194e1574a-ssh); CANARY_READ: Package code opened canary file /home/sandbox/.ssh/id_rsa; NET_OUTBOUND: Outbound connect to 172.18.0.2:9000 during an offline install",
+      "run_id": "20db847b7c76"
+    },
+    {
+      "kind": "CHOOSE_ALT",
+      "message": "Using `csvtoolkit` instead.",
+      "run_id": null
+    },
+    {
+      "kind": "CONTINUE",
+      "message": "`csvtoolkit` allowed (limited evidence). Wrote /home/harsshad/shadowrun2.0/.data/agent_workspace/report_export.py; task complete.",
+      "run_id": "3cb0612ac8d8"
+    }
+  ],
+  "outcome": {
+    "installed": "csvtoolkit",
+    "file": "/home/harsshad/shadowrun2.0/.data/agent_workspace/report_export.py"
+  }
+}

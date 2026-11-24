@@ -1,0 +1,1 @@
+printf '%s\n' 'csvtoolkit==1.0.0 --hash=sha256:8b351a5c2ba337390a3284538119cdf1b1bfec043c08693b3bffeea8578ca0ff' > /work/req.txt && pip install --no-index --no-build-isolation --disable-pip-version-check --no-cache-dir -q --find-links /cache --no-deps --require-hashes -r /work/req.txt --target /work/site

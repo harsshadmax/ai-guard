@@ -1,0 +1,1 @@
+printf '%s\n' 'tinyjson-utils==1.0.0 --hash=sha256:2a0f98b53bc59f071f545dbd7b1ba9f5964d2562ab8da67b902460495eb9d3a0' > /work/req.txt && pip install --no-index --no-build-isolation --disable-pip-version-check --no-cache-dir -q --find-links /cache --no-deps --require-hashes -r /work/req.txt --target /work/site
