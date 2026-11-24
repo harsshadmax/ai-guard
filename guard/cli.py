@@ -35,13 +35,15 @@ def cmd_demo(a) -> int:
             registry.reset_workspace()
             _print(f"\n--- guard {'ON' if on else 'OFF'} ---")
             r = scenarios.run(name, on, log=_print)
-            verdict = f"LEAKED via {', '.join(r['leak_channels'])}" if r["leaked"] else "nothing leaked"
+            verdict = (f"LEAKED via {', '.join(r['leak_channels'])}" if r["leaked"] else
+                       "HARMED: an injected action ran" if r["harmed"] else "safe: no injected action ran")
             _print(f"RESULT: {verdict}")
-            summary.append((name, on, r["leaked"], [t["decision"] for t in r["transcript"]]))
+            summary.append((name, on, "LEAKED" if r["leaked"] else "HARMED" if r["harmed"] else "safe",
+                            [t["decision"] for t in r["transcript"]]))
     if len(summary) > 2:
         _print("\nSummary")
-        for name, on, leak, ds in summary:
-            _print(f"  {name:16} guard {'ON ' if on else 'OFF'}  {'LEAKED' if leak else 'safe  '}  {' '.join(ds)}")
+        for name, on, outcome, ds in summary:
+            _print(f"  {name:16} guard {'ON ' if on else 'OFF'}  {outcome:6}  {' '.join(ds)}")
     res = audit.verify()
     _print(f"\nAudit chain: {'intact' if res['ok'] else 'BROKEN at row ' + str(res['broken_id'])} ({res['checked']} entries)")
     return 0

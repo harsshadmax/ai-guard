@@ -1,4 +1,28 @@
-# Acceptance checklist (blueprint section 18, the four 2.0 security fixes, and the three review findings)
+# PS-CYB-02 acceptance: Live Security Guard for AI Assistants & Tools
+
+Checked on Windows 11, Python 3.12.10, plain venv (no Docker), on the commit that adds this table.
+`pytest`: **405 passed, 28 skipped** (the skipped tests need the Docker sandbox of the deep scan; they run in Linux CI).
+The Windows CI job (`windows-guard`) and the extended Linux job have **not run yet**, so this file does not claim they pass.
+
+| Requirement (from the problem statement) | How | Evidence |
+|---|---|---|
+| Inspect every tool action **before** it happens | `guard/engine.py`: nothing executes without ALLOW or a human approval; HTTP proxy `POST /api/v1/guard/call`, MCP stdio proxy `shadowguard mcp` | `tests/guard/test_engine.py`, `test_api_ui_mcp.py::test_proxy_end_to_end`, `::test_mcp_proxy_blocks_injected_call` |
+| Stop hidden prompt injection in webpages, PDFs/documents, emails | provenance taint + injection detectors (hidden HTML, comments, Unicode tags, base64/hex/rot13, 6 languages, homoglyphs) | demo scenarios hidden-text, display-none, unicode-tags, base64, email-footer, web-comment; `tests/guard/test_detectors.py` |
+| Stop hijacks: secret file reads, file transfers, deletions | `TAINTED_*`, `INJECTION_IN_SESSION`, `ARG_FROM_UNTRUSTED`, destructive/obfuscated commands, RBAC | `test_every_demo_attack_leaks_without_guard_and_not_with_it`, `test_destructive_scenario_is_blocked` |
+| Stop a plugin that silently turns malicious | tool pinning, rug-pull quarantine, poisoned descriptions, shadowing | `test_rug_pull_quarantines_until_reapproved`, `test_tool_shadowing`, scenario rug-pull |
+| Stop secret leaks | key formats, entropy, planted canaries on outbound args; redaction of results and audit payloads | `test_secrets_in_results_are_redacted_before_the_model_sees_them`, `test_no_raw_secret_in_audit_or_calls_table` |
+| Decide in milliseconds | measured p50 1.2 ms, p95 2.2 ms, p99 6.4 ms over 344 calls | `eval_guard/results/results.md`, `test_latency_budget` |
+| Clear warning for the human | plain-English explanation quoting the hidden instruction; live alerts; approval queue with auto-deny | dashboard, `test_approval_lifecycle`, `test_approval_timeout_denies` |
+| Log the full attack trail | hash-chained audit (`CONTENT_INGESTED`, `INJECTION_DETECTED`, `VERDICT_ISSUED`, ...), attack-trail page | `audit verify` in `test_ps_cyb_02_example_guard_on_blocks_and_nothing_leaks`, `/guard/session/<id>` |
+| RBAC | 5 roles: tools, paths, recipients, call rate | `test_role_matrix`, `test_recipient_rbac`, `test_rate_limit` |
+| Fail closed | detector crash/timeout, policy error, unknown tool/session, unmatched call | `test_detector_crash_fails_closed`, `test_detector_timeout_fails_closed`, `test_policy_error_blocks`, `test_unknown_tool_and_unknown_session_are_blocked` |
+| Dashboard cannot be attacked by the documents it shows | autoescape, no `innerHTML` in `guard.js` | `test_attack_documents_cannot_inject_markup`, `test_guard_js_never_writes_markup` |
+| Measured against baselines | 60 attack / 61 benign self-written cases × 4 setups | `eval_guard/results/` (read the caveats in the README) |
+
+---
+
+# Deep scan (original Shadow-Run) acceptance
+
 
 Checked on the dev machine (Windows 11, WSL2 Ubuntu 24.04, Docker Engine 29.1.3, strace 6.13, Python 3.12.3).
 **Every number below comes from one run bound to one commit:**

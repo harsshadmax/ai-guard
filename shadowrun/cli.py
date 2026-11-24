@@ -29,7 +29,11 @@ def _pip_install(args) -> int:
 
 
 def main(argv=None) -> int:
-    p = argparse.ArgumentParser(prog="shadowrun", description="Behavioural verification gate for package installs")
+    argv = sys.argv[1:] if argv is None else argv
+    if argv[:1] == ["guard"]:  # `shadowrun guard ...` is the same as `shadowguard ...`
+        from guard.cli import main as guard_main
+        return guard_main(argv[1:])
+    p = argparse.ArgumentParser(prog="shadowrun", description="Package deep scan; `shadowrun guard --help` for the AI tool guard")
     sub = p.add_subparsers(dest="cmd", required=True)
     for name in ("doctor", "up", "down", "reset"):
         sub.add_parser(name)
@@ -75,7 +79,7 @@ def main(argv=None) -> int:
         try:
             from eval.run_eval import main as eval_main
         except ImportError:
-            print("eval is not built yet (blueprint step 8)", file=sys.stderr)
+            print("eval/run_eval.py is missing from this checkout", file=sys.stderr)
             return 1
         return eval_main(args.repeats)
     return 1

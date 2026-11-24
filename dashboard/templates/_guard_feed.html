@@ -6,7 +6,7 @@
   <td class="mono">{{ r.created_at | hms }}</td>
   <td>{% if r.decision == 'BLOCK' %}<span class="chip bad">BLOCK</span>{% elif r.decision == 'ASK' %}<span class="chip warn">ASK</span>{% elif r.decision == 'ALLOW' %}<span class="chip ok">ALLOW</span>{% else %}<span class="chip">NO GUARD</span>{% endif %}</td>
   <td class="mono">{{ r.tool }}</td>
-  <td class="mono args">{% for k, v in (r.args_redacted or {}).items() %}{{ k }}={{ (v|string)[:60] }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+  <td class="mono args"><div class="clip">{% for k, v in (r.args_redacted or {}).items() %}{{ k }}={{ (v|string)[:60] }}{% if not loop.last %}, {% endif %}{% endfor %}</div></td>
   <td>{% if r.taint == 'untrusted' %}<span class="chip bad small">untrusted</span>{% elif r.taint == 'internal' %}<span class="chip small">internal</span>{% else %}<span class="chip ok small">clean</span>{% endif %}</td>
   <td class="small">{{ r.role }}</td>
   <td class="small mono">{{ r.rules[:4] | join(", ") }}{% if r.rules|length > 4 %} +{{ r.rules|length - 4 }}{% endif %}</td>

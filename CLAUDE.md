@@ -1,5 +1,21 @@
 # Shadow-Run
 
+Two products in one repo:
+1. **AI tool guard** (`guard/`, PS-CYB-02): inspects every AI tool call before it runs. Runs on plain Python, any OS.
+2. **Package deep scan** (`shadowrun/`): the original sandboxed pip-install gate. Needs Linux/WSL2 + Docker.
+
+## AI tool guard rules
+- Detectors (and any LLM/classifier) only emit scored `Finding`s; `shadowrun.policy.decide_call` decides. Never let an LLM decide.
+- Fail closed: errors, timeouts, unknown tools/sessions and unmatched calls end in BLOCK or ASK, never ALLOW.
+- Everything is simulated: tools touch only `.data/guard/workspace` and the local sink; never add code that contacts real hosts or reads real user files.
+- Secrets never reach the audit log, the guard_calls table, or the model unredacted.
+- Dashboard: autoescape on, no `innerHTML`/`outerHTML` in JS (tests enforce both).
+- Numbers in README/PPT must come from `shadowguard eval` output; the corpus is self-written, say so.
+- Commands: `shadowguard demo|serve|eval|doctor|policy lint|verify-audit|mcp`, `pytest tests/guard`.
+- Layout: `guard/` (engine, provenance, rbac, approvals, detectors/, tools, api, ui, proxy_mcp, cli), `policies/guard.yaml`, `policies/injection_patterns.yaml`, `demo/`, `eval_guard/`, `tests/guard/`, `docs/`.
+
+# Package deep scan
+
 Behavioural verification gate for AI coding agents: a package install is first run inside an isolated, instrumented Docker sandbox; the observed behaviour decides ALLOW / BLOCK / ESCALATE. Full spec: `shawdows2blueprint.md` (this file wins over any older blueprint).
 
 ## Honest claim
@@ -24,7 +40,7 @@ Shadow-Run reduces the chance and blast radius of a malicious install. It does n
 - Run tests (`pytest`) after every change.
 - If Docker/strace behaviour is uncertain, run a small experiment instead of guessing.
 - Work step by step per blueprint section 14; each step ends with its check, real output shown, and one commit `step-N: ...`.
-- Keep the repo in the WSL filesystem (`~/shadowrun2.0`).
+- For the deep scan, keep the repo in the WSL filesystem (`~/ai-guard`).
 
 ## Layout
 `shadowrun/` (cli, config, models, fetcher, sandbox, canary, monitor, detector, policy, audit, pipeline, db, api), `sink/`, `docker/`, `packages/`, `policies/default.yaml`, `agent/`, `dashboard/`, `eval/`, `scripts/`, `.data/` (gitignored), `tests/fixtures/`.

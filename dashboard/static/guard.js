@@ -59,7 +59,8 @@
     setTimeout(function () { card.classList.add("fade"); }, 14000);
     setTimeout(function () { card.remove(); }, 15000);
   }
-  if (window.EventSource && document.body.getAttribute("data-page") !== null) {
+  var STATIC = new URLSearchParams(window.location.search).get("shot") === "1";  // screenshots: no live stream
+  if (window.EventSource && !STATIC && document.body.getAttribute("data-page") !== null) {
     var startAt = Date.now() / 1000;
     var es = new EventSource("/api/v1/guard/stream");
     es.addEventListener("alert", function (m) {
@@ -148,4 +149,12 @@
       }, function (e) { err.textContent = e.message; err.hidden = false; })
       .then(function () { btn.disabled = false; });
   });
+  /* shareable demo link: /guard/demo?scenario=hidden-text&autorun=1 */
+  if (df) {
+    var q = new URLSearchParams(window.location.search);
+    if (q.get("scenario")) {
+      Array.prototype.forEach.call(df.scenario.options, function (o) { if (o.value === q.get("scenario")) df.scenario.value = o.value; });
+    }
+    if (q.get("autorun") === "1") df.requestSubmit ? df.requestSubmit() : df.dispatchEvent(new Event("submit"));
+  }
 })();

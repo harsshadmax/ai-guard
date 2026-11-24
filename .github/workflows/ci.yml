@@ -40,10 +40,15 @@ jobs:
         run: |
           .venv/bin/python -m pytest -q -rs -p no:cacheprovider | tee pytest.out
           if grep -Eq '[0-9]+ skipped' pytest.out; then echo "tests were skipped: sandbox not fully exercised"; exit 1; fi
-      - name: Benchmark
+      - name: Benchmark (package deep scan)
         run: |
           .venv/bin/python -m shadowrun.cli reset
           .venv/bin/python -m shadowrun.cli eval --repeats 1 | tee bench.out
+      - name: AI tool guard self-test, demo and benchmark
+        run: |
+          .venv/bin/python -m guard.cli doctor
+          .venv/bin/python -m guard.cli demo --scenario all --mode both | tee guard_demo.out
+          .venv/bin/python -m eval_guard.run_eval | tee guard_bench.out
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -52,3 +57,29 @@ jobs:
             pytest.out
             bench.out
             eval/results/results.md
+            guard_demo.out
+            guard_bench.out
+            eval_guard/results/
+
+  # The AI tool guard must work on plain Windows Python (no Docker, no WSL). Docker-only tests skip themselves here.
+  windows-guard:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: python -m pip install -q -e .
+      - name: Tests (Docker tests skip on Windows)
+        env:
+          PYTHONIOENCODING: utf-8
+        run: python -m pytest -q -p no:cacheprovider
+      - name: Guard self-test and demo
+        env:
+          PYTHONIOENCODING: utf-8
+        run: |
+          python -m guard.cli doctor
+          python -m guard.cli demo --scenario hidden-text --mode both
+          python -m guard.cli policy lint

@@ -83,5 +83,6 @@ def run(name: str, guard_on: bool, log=print, role: str | None = None) -> dict:
         agent.run(sc["task"], sc["tool"], dict(sc["args"]))
     leaks = leaked(since)
     return {"scenario": name, "title": sc["title"], "guard_on": guard_on, "session_id": s.id,
-            "transcript": agent.transcript, "leaked": bool(leaks), "leak_channels": sorted({e["channel"] for e in leaks}),
+            "transcript": agent.transcript, "leaked": bool(leaks),
+            "harmed": any(t["executed"] and t["why"] != "user task" for t in agent.transcript), "leak_channels": sorted({e["channel"] for e in leaks}),
             "sink_events": tools.sink_events()[since:]}
