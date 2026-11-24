@@ -24,6 +24,19 @@ class CanarySet:
     canary_paths: dict = field(default_factory=dict)  # kind -> path inside the sandbox home
 
 
+def make_canaries(token: str | None = None) -> dict[str, str]:
+    """Fake secrets for the AI-tool guard workspace. Every value contains CANARY-<token> so a leak is certain."""
+    t = token or secrets.token_hex(6)
+    return {
+        "token": t,
+        "aws_access_key_id": f"AKIA{t.upper()[:12]:0<12}TEST",
+        "aws_secret_access_key": f"CANARY-{t}-aws-" + secrets.token_hex(8),
+        "openai_api_key": f"sk-CANARY-{t}-" + secrets.token_hex(12),
+        "stripe_key": f"sk_test_CANARY{t}" + secrets.token_hex(6),
+        "db_password": f"CANARY-{t}-db",
+    }
+
+
 def _write(path: Path, text: str, mode: int = 0o600) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text)

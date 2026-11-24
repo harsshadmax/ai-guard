@@ -7,7 +7,11 @@ from . import db
 
 GENESIS = "GENESIS"
 EVENT_TYPES = {"ACTION_RECEIVED", "FETCHED", "SANDBOX_STARTED", "SANDBOX_FINISHED", "FINDINGS_RECORDED",
-               "DECISION_MADE", "EVAL_STARTED", "EVAL_FINISHED"}
+               "DECISION_MADE", "EVAL_STARTED", "EVAL_FINISHED",
+               # AI tool guard (run_id carries the guard session id; payloads are redacted before append)
+               "SESSION_STARTED", "TOOL_CALL_RECEIVED", "CONTENT_INGESTED", "TAINT_ASSIGNED", "INJECTION_DETECTED",
+               "SECRET_LEAK_DETECTED", "TOOL_INTEGRITY_CHANGED", "RBAC_DENIED", "APPROVAL_REQUESTED",
+               "APPROVAL_RESOLVED", "TOOL_EXECUTED", "VERDICT_ISSUED", "REDACTION_APPLIED"}
 
 
 def canonical_json(payload) -> str:
@@ -56,3 +60,13 @@ def verify() -> dict:
 def list_entries(limit: int = 100) -> list[dict]:
     with closing(db.connect()) as c:
         return [dict(r) for r in c.execute("SELECT * FROM audit_log ORDER BY id DESC LIMIT ?", (limit,))]
+
+
+def verify_on_startup() -> dict:
+    """Called when the server starts: a broken chain is reported loudly, never silently repaired."""
+    import logging
+    res = verify()
+    if not res["ok"]:
+        logging.getLogger("shadowrun.audit").error("AUDIT CHAIN BROKEN at row %s (%s rows verified before it)",
+                                                   res["broken_id"], res["checked"])
+    return res

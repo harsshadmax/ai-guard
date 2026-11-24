@@ -11,6 +11,9 @@ class Finding(BaseModel):
     severity: str
     message: str
     evidence: dict[str, Any] = Field(default_factory=dict)
+    score: float = 1.0            # 0..1 confidence from the detector that produced it
+    detector: str = "sandbox"     # which detector produced it (sandbox = the pip deep scan)
+    span: dict | None = None      # {"source_id", "start", "end", "text"}: exact text to highlight in the UI
 
 
 @dataclass

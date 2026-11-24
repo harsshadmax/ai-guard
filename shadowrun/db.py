@@ -22,6 +22,28 @@ CREATE TABLE IF NOT EXISTS audit_log (
 CREATE TABLE IF NOT EXISTS eval_results (
   id INTEGER PRIMARY KEY AUTOINCREMENT, eval_run_id TEXT, scenario_id TEXT, setup TEXT, repeat INTEGER,
   outcome TEXT, decision TEXT, decision_ms REAL, leaked_tokens INTEGER);
+CREATE TABLE IF NOT EXISTS guard_sessions (
+  id TEXT PRIMARY KEY, created_at TEXT, user_id TEXT, role TEXT, agent_id TEXT, guard_on INTEGER, max_taint TEXT,
+  task TEXT);
+CREATE TABLE IF NOT EXISTS guard_sources (
+  id TEXT PRIMARY KEY, session_id TEXT, created_at TEXT, origin TEXT, trust TEXT, sha256 TEXT, preview TEXT,
+  hidden_text TEXT);
+CREATE TABLE IF NOT EXISTS guard_calls (
+  id TEXT PRIMARY KEY, session_id TEXT, created_at TEXT, tool TEXT, tool_class TEXT, args_redacted_json TEXT,
+  taint TEXT, source_ids_json TEXT, decision TEXT, reason TEXT, matched_rules_json TEXT, latency_ms REAL,
+  executed INTEGER, guard_on INTEGER);
+CREATE TABLE IF NOT EXISTS guard_findings (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, call_id TEXT, source_id TEXT, session_id TEXT, rule_id TEXT, severity TEXT,
+  score REAL, detector TEXT, message TEXT, span_json TEXT, evidence_json TEXT);
+CREATE TABLE IF NOT EXISTS guard_approvals (
+  id TEXT PRIMARY KEY, call_id TEXT, session_id TEXT, created_at TEXT, expires_at TEXT, state TEXT,
+  resolved_by TEXT, resolved_at TEXT, note TEXT);
+CREATE TABLE IF NOT EXISTS guard_tool_baselines (
+  tool TEXT PRIMARY KEY, server TEXT, desc_sha256 TEXT, schema_sha256 TEXT, approved INTEGER, first_seen TEXT,
+  last_changed TEXT, quarantined INTEGER, description TEXT);
+CREATE TABLE IF NOT EXISTS guard_eval_results (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, eval_run_id TEXT, case_id TEXT, category TEXT, kind TEXT, setup TEXT,
+  decision TEXT, correct INTEGER, latency_ms REAL, leaked INTEGER);
 CREATE TABLE IF NOT EXISTS doctor_runs (
   id TEXT PRIMARY KEY, started_at TEXT, finished_at TEXT, ok INTEGER, checks_json TEXT, reason TEXT);
 """
@@ -116,14 +138,44 @@ def demo_reset() -> None:
     """Clear runs, findings, agent events, the sink log and old traces. The audit log is kept."""
     import shutil
     with closing(connect()) as c:
-        for t in ("runs", "findings", "agent_events"):
+        for t in ("runs", "findings", "agent_events", "guard_sessions", "guard_sources", "guard_calls",
+                  "guard_findings", "guard_approvals", "guard_tool_baselines"):
             c.execute(f"DELETE FROM {t}")
         c.commit()
     if config.SINK_LOG.exists():
         config.SINK_LOG.write_text("")
     shutil.rmtree(config.TRACE_DIR, ignore_errors=True)
+    if config.GUARD_SINK_LOG.exists():
+        config.GUARD_SINK_LOG.write_text("")
 
 
 def list_runs(limit: int = 50) -> list[dict]:
     with closing(connect()) as c:
         return [dict(r) for r in c.execute("SELECT * FROM runs ORDER BY created_at DESC LIMIT ?", (limit,))]
+
+
+# ---------------------------------------------------------------- AI tool guard
+def insert_row(table: str, row: dict) -> None:
+    """Parameterised insert for the guard_* tables (table names come from code, never from input)."""
+    if not table.startswith("guard_"):
+        raise ValueError("insert_row is for guard tables only")
+    cols = list(row)
+    with closing(connect()) as c:
+        c.execute(f"INSERT INTO {table} ({','.join(cols)}) VALUES ({','.join('?' * len(cols))})",
+                  [json.dumps(v, default=str) if isinstance(v, (dict, list)) else v for v in row.values()])
+        c.commit()
+
+
+def update_row(table: str, key: str, key_value, **fields) -> None:
+    if not table.startswith("guard_") or not fields:
+        return
+    with closing(connect()) as c:
+        c.execute(f"UPDATE {table} SET {','.join(k + '=?' for k in fields)} WHERE {key}=?",
+                  [json.dumps(v, default=str) if isinstance(v, (dict, list)) else v for v in fields.values()]
+                  + [key_value])
+        c.commit()
+
+
+def query(sql: str, params: tuple = ()) -> list[dict]:
+    with closing(connect()) as c:
+        return [dict(r) for r in c.execute(sql, params)]
