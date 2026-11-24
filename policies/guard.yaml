@@ -1,0 +1,58 @@
+# AI tool guard policy. Every rule is evaluated; the strictest decision wins (BLOCK > ASK > ALLOW).
+# A tool call that matches no rule is ASKed (fail closed). Any policy error BLOCKs.
+# Paths are relative to the guard workspace. In path/tool/recipient lists, '!glob' excludes; the last match wins.
+version: 1
+
+roles:
+  analyst:
+    tools: [read_file, list_dir, fetch_url, read_inbox, send_email, query, get_weather, write_file]
+    paths: ["docs/**", "reports/**", "inbox/**", "downloads/**", "secrets/**"]   # may *try* secrets: taint rules decide
+    recipients: ["*@company.test", "*@partner.test"]
+    max_calls_per_min: 120
+  developer:
+    tools: [read_file, write_file, list_dir, run_command, query, fetch_url, delete_file]
+    paths: ["**", "!secrets/**"]
+    recipients: []
+    max_calls_per_min: 240
+  admin:
+    tools: ["*"]
+    paths: ["**"]
+    recipients: ["*@company.test", "*@partner.test"]
+    max_calls_per_min: 600
+  agent-readonly:
+    tools: [read_file, list_dir, fetch_url, get_weather]
+    paths: ["docs/**", "reports/**", "downloads/**"]
+    recipients: []
+    max_calls_per_min: 60
+
+# Where tool results come from decides how much the model may trust them.
+trust:
+  untrusted_paths: ["docs/external/**", "downloads/**", "inbox/**"]
+
+destinations:
+  internal: ["*@company.test", "http://intranet.company.test/*", "https://intranet.company.test/*"]
+  allowlisted: ["*@partner.test", "https://docs.partner.test/*", "https://news.example.org/*"]
+  denylisted: ["*@example.com", "*.example.com", "https://collect.evil.test/*", "*@evil.test"]
+
+rules:
+  # ---- certain or structural: always BLOCK
+  - { id: block_certain,     when: { any_rule: [CANARY_EXFIL, TOOL_RUG_PULL, TOOL_QUARANTINED, TOOL_POISONED_DESC, UNKNOWN_TOOL] }, decision: BLOCK }
+  - { id: block_path_abuse,  when: { any_rule: [PATH_ESCAPE, PATH_TRAVERSAL, PATH_SYSTEM] },                                    decision: BLOCK }
+  - { id: block_rbac,        when: { any_rule: [RBAC_TOOL_DENIED, RBAC_PATH_DENIED, RBAC_RECIPIENT_DENIED, RBAC_UNKNOWN_ROLE, RBAC_VOLUME_EXCEEDED] }, decision: BLOCK }
+  - { id: block_secret_out,  when: { any_rule: [SECRET_IN_OUTBOUND, EXFIL_URL_BEACON, EXFIL_LOOKALIKE, EXFIL_DENYLISTED_DEST] }, decision: BLOCK }
+  # ---- provenance: the session read untrusted content
+  - { id: block_tainted_secret_read, when: { tool_class: [sensitive_read], taint_at_least: untrusted },                        decision: BLOCK }
+  - { id: block_tainted_destructive, when: { any_rule: [TAINTED_DESTRUCTIVE] },                                               decision: BLOCK }
+  - { id: block_hijacked_action,     when: { any_rule: [INJECTION_IN_SESSION], tool_class: [external_send, sensitive_read, destructive, exec] }, decision: BLOCK }
+  - { id: ask_arg_from_untrusted,    when: { any_rule: [ARG_FROM_UNTRUSTED] },                                                 decision: ASK }
+  - { id: ask_tainted_unknown_send,  when: { tool: [send_email], taint_at_least: untrusted, dest_class: [unknown] },          decision: ASK }
+  - { id: ask_injection_write,       when: { any_rule: [INJECTION_IN_SESSION], tool_class: [write] },                         decision: ASK }
+  # ---- risky but legitimate on their own: a human decides
+  - { id: ask_secret_read,   when: { tool_class: [sensitive_read] },                                                          decision: ASK }
+  - { id: ask_destructive,   when: { any_rule: [DESTRUCTIVE_COMMAND, OBFUSCATED_COMMAND] },                                   decision: ASK }
+  - { id: ask_delete,        when: { tool_class: [destructive] },                                                             decision: ASK }
+  - { id: ask_odd,           when: { any_rule: [ANOMALY_SECRET_THEN_SEND, TOOL_SHADOWING, GUARD_TIMEOUT, GUARD_ERROR] },      decision: ASK }
+  # ---- allow
+  - { id: allow_clean,         when: { max_severity_at_most: low },                                                           decision: ALLOW }
+  - { id: allow_internal_send, when: { tool_class: [external_send], dest_class: [internal, allowlisted], max_severity_at_most: high }, decision: ALLOW }
+  - { id: allow_web_read,      when: { tool: [fetch_url], max_severity_at_most: medium },                                     decision: ALLOW }

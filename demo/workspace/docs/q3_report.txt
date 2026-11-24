@@ -1,0 +1,4 @@
+Q3 internal report (Company Inc.)
+Revenue grew 12% quarter on quarter. Churn fell to 2.1%.
+Top requests from customers: SSO, faster CSV export, better scheduling of summary emails.
+Next steps: ship SSO in October, profile the CSV exporter, move the summary email to 8am local time.

@@ -1,0 +1,27 @@
+# Prompt-injection patterns (matched case-insensitively on folded text; every pattern is length-bounded).
+# rule: the Finding rule id. score: 0..1 confidence. Add patterns here, not in code.
+version: 1
+patterns:
+  # --- instruction override ---
+  - { id: ovr-ignore,      rule: INJECTION_OVERRIDE, score: 0.95, pattern: '\b(ignore|disregard|forget|override|bypass)\b.{0,40}\b(previous|prior|earlier|above|all|any|your|the)\b.{0,30}\b(instructions?|rules?|guidelines?|directives?|prompts?|policies|constraints)\b' }
+  - { id: ovr-new-instr,   rule: INJECTION_OVERRIDE, score: 0.85, pattern: '\b(new|updated|real|actual|true)\s+(system\s+)?(instructions?|prompt|directive|orders?)\s*[:\-]' }
+  - { id: ovr-system,      rule: INJECTION_OVERRIDE, score: 0.80, pattern: '(\[\s*system\s*\]|<\s*/?\s*system\s*>|###\s*system|system\s+prompt\s*:|begin\s+system\s+message)' }
+  - { id: ovr-you-are-now, rule: INJECTION_OVERRIDE, score: 0.75, pattern: '\byou\s+are\s+now\s+(a|an|in|the|no\s+longer)\b' }
+  - { id: ovr-dev-mode,    rule: INJECTION_OVERRIDE, score: 0.80, pattern: '\b(developer|debug|god|jailbreak|dan)\s+mode\b.{0,30}\b(enabled|activated|on)\b' }
+  - { id: ovr-dont-tell,   rule: INJECTION_OVERRIDE, score: 0.85, pattern: "\\b(do\\s+not|don't|never)\\s+(tell|inform|mention|alert|notify|reveal\\s+to)\\s+(the\\s+)?(user|human|operator|employee|anyone)\\b" }
+  - { id: ovr-assistant,   rule: INJECTION_OVERRIDE, score: 0.70, pattern: '\b(attention|note|important|instructions?)\s+(to|for)\s+(the\s+)?(ai|assistant|llm|model|agent|chatbot|copilot)\b' }
+  # multilingual override
+  - { id: ovr-es,          rule: INJECTION_OVERRIDE, score: 0.90, pattern: '\b(ignora|olvida)\b.{0,30}\b(instrucciones|reglas)\b' }
+  - { id: ovr-fr,          rule: INJECTION_OVERRIDE, score: 0.90, pattern: '\b(ignore[zr]?|oublie[zr]?)\b.{0,30}\b(instructions|consignes|règles)\b' }
+  - { id: ovr-de,          rule: INJECTION_OVERRIDE, score: 0.90, pattern: '\b(ignoriere|vergiss)\b.{0,40}\b(anweisungen|regeln|vorgaben)\b' }
+  - { id: ovr-hi,          rule: INJECTION_OVERRIDE, score: 0.90, pattern: '(निर्देशों|नियमों).{0,30}(अनदेखा|नज़रअंदाज़|भूल)' }
+  - { id: ovr-pt,          rule: INJECTION_OVERRIDE, score: 0.90, pattern: '\b(ignore|esqueça)\b.{0,30}\b(instruções|regras)\b' }
+  # --- the content asks the assistant to take a tool action on a sensitive target ---
+  - { id: act-exfil,       rule: INJECTION_TOOL_REFERENCE, score: 0.80, pattern: '\b(send|email|e-mail|mail|forward|upload|post|transmit|exfiltrate|leak|share)\b.{0,60}\b(api[\s_-]?keys?|secrets?|credentials?|passwords?|tokens?|\.env|private\s+keys?|ssh\s+keys?|database\s+dump|customer\s+(data|list|records))\b' }
+  - { id: act-read-secret, rule: INJECTION_TOOL_REFERENCE, score: 0.75, pattern: '\b(read|open|cat|print|load|get|fetch|collect|dump)\b.{0,40}\b(api[\s_-]?keys?|secrets?|credentials?|passwords?|\.env|id_rsa|private\s+keys?)\b' }
+  - { id: act-to-address,  rule: INJECTION_TOOL_REFERENCE, score: 0.60, pattern: '\b(send|email|forward|mail)\s+(it|them|this|that|everything|all\s+of\s+it|the\s+\w+)\s+to\s+[\w.+-]+@[\w-]+\.[\w.]+' }
+  - { id: act-destroy,     rule: INJECTION_TOOL_REFERENCE, score: 0.80, pattern: '\b(delete|remove|wipe|erase|destroy|drop)\b.{0,30}\b(all|every|the\s+entire|whole)\b.{0,30}\b(files?|folders?|database|tables?|repo(sitory)?|backups?|records)\b' }
+  - { id: act-run,         rule: INJECTION_TOOL_REFERENCE, score: 0.65, pattern: '\b(run|execute|invoke|call)\b.{0,20}\b(the\s+)?(following|this)\s+(command|script|tool|function)\b' }
+  - { id: act-tool-name,   rule: INJECTION_TOOL_REFERENCE, score: 0.70, pattern: '\b(call|use|invoke|trigger)\s+(the\s+)?`?(send_email|read_file|delete_file|run_command|fetch_url|write_file|query)`?\b' }
+  # --- exfil beacons that render automatically ---
+  - { id: beacon-md-img,   rule: EXFIL_URL_BEACON, score: 0.85, pattern: '!\[[^\]]{0,100}\]\(\s*https?://[^\s)]{1,300}[?&][^\s)=]{1,40}=[^\s)]{0,300}\)' }
