@@ -8,11 +8,12 @@ from shadowrun.models import Finding
 def _allowed(value: str, patterns: list[str]) -> bool:
     """Ordered globs; '!pattern' excludes. Last matching pattern wins."""
     ok = False
+    forms = [value] if value in ("", ".") or "@" in value else [value, value.rstrip("/") + "/"]
     for p in patterns or []:
         if p.startswith("!"):
             if fnmatch(value, p[1:]):
                 ok = False
-        elif fnmatch(value, p):
+        elif any(fnmatch(v, p) for v in forms):
             ok = True
     return ok
 

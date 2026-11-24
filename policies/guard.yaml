@@ -44,7 +44,8 @@ rules:
   - { id: block_tainted_secret_read, when: { tool_class: [sensitive_read], taint_at_least: untrusted },                        decision: BLOCK }
   - { id: block_tainted_destructive, when: { any_rule: [TAINTED_DESTRUCTIVE] },                                               decision: BLOCK }
   - { id: block_hijacked_action,     when: { any_rule: [INJECTION_IN_SESSION], tool_class: [external_send, sensitive_read, destructive, exec] }, decision: BLOCK }
-  - { id: ask_arg_from_untrusted,    when: { any_rule: [ARG_FROM_UNTRUSTED] },                                                 decision: ASK }
+  - { id: ask_arg_from_untrusted,    when: { any_rule: [ARG_FROM_UNTRUSTED], tool_class: [sensitive_read, write, destructive, exec] }, decision: ASK }
+  - { id: ask_arg_send_unknown,      when: { any_rule: [ARG_FROM_UNTRUSTED], tool_class: [external_send], dest_class: [unknown] }, decision: ASK }
   - { id: ask_tainted_unknown_send,  when: { tool: [send_email], taint_at_least: untrusted, dest_class: [unknown] },          decision: ASK }
   - { id: ask_injection_write,       when: { any_rule: [INJECTION_IN_SESSION], tool_class: [write] },                         decision: ASK }
   # ---- risky but legitimate on their own: a human decides

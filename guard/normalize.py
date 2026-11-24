@@ -22,7 +22,7 @@ HOMOGLYPHS = str.maketrans({"а": "a", "е": "e", "о": "o", "р": "p", "с": "c
                             "Т": "T", "Х": "X"})
 B64 = re.compile(r"(?<![A-Za-z0-9+/=])[A-Za-z0-9+/]{24,4000}={0,2}(?![A-Za-z0-9+/=])")
 HEX = re.compile(r"(?<![0-9a-fA-F])(?:[0-9a-fA-F]{2}){16,2000}(?![0-9a-fA-F])")
-ROT13_HINT = re.compile(r"\b(rot13|ebg13)\b[:\s]+([A-Za-z ,.'!?]{12,2000})", re.I)
+ROT13_HINT = re.compile(r"\b(rot13|ebg13)\b[:\s]+([A-Za-z0-9 ,.'!?/:_\-<>@=&%()`*]{12,2000})", re.I)
 
 
 class _Html(HTMLParser):
