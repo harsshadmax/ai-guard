@@ -46,7 +46,8 @@ Team name, member names and college are placeholders for you to fill in.
 
 ## Slide 7: Results (measured, self-written simulated corpus)
 * 60 attack and 61 benign cases, 4 setups, one laptop, 37 s
-* Shadow-Run: **60/60 attacks stopped, 0 leaks, 59/61 benign tasks completed** (2 asked by design)
+* Held-out (run once, not tuned): **11/20 attacks blocked, 3 held for a human, 6 got through (4 leaked); 6/20 normal tasks wrongly blocked**
+* Development set (tuned, upper bound only): 60/60 attacks stopped
 * Baselines: no guard 0/60 (44 leaks); keyword filter 10/60; content filter 55/60 but hides 4 legitimate documents and misses path escapes and the plugin rug pull
 * Latency: **p50 1.2 ms, p95 2.2 ms** per decision
 * Honest note: corpus and detectors were written by us; treat as a regression test, not real-world coverage

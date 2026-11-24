@@ -140,6 +140,35 @@ is escaped (Jinja autoescape, no `innerHTML`); a test renders documents carrying
 
 ## Benchmark
 
+### Held-out test: the realistic number
+
+20 new attacks and 20 normal tasks were written and committed **before their first run**
+([`eval_guard/heldout_cases.py`](eval_guard/heldout_cases.py), commit `d35c478`), run once with
+`python -m eval_guard.run_heldout`, and the guard was **not** changed afterwards. The attacks use paraphrased
+business language instead of "ignore previous instructions", explicit hijacked-agent actions, insider-edited
+internal documents, and channels the policy allows by design.
+
+| Attacks (20, all succeed without a guard) | Count |
+|---|---|
+| Blocked outright | 11 |
+| Held for a human (safe only if the human says no) | 3 |
+| Got through (a harmful step ran) | 6, of which 4 leaked data |
+
+| Normal tasks (20) | Count |
+|---|---|
+| Completed | 11 |
+| Needed approval | 3 |
+| Wrongly blocked | 6 |
+
+What got through: customer data sent to an allow-listed partner or to an internal mailbox, data hidden in a URL
+path (not a query string), and instructions planted in an internal wiki (internal content is trusted). In two more
+cases the harmful send ran but carried no data because the read before it was held for approval. Wrongly blocked:
+a reply to a new prospect (recipient not allow-listed), two sends after reading an inbox that contained an attack
+email, a security article quoting an injection phrase, a long search URL, and documentation with an example key.
+Full table: [`eval_guard/results/heldout.md`](eval_guard/results/heldout.md).
+
+### Development benchmark (tuned, upper bound)
+
 `shadowguard eval` runs every case under four setups, on one Windows laptop, in about 37 seconds
 (results: [`eval_guard/results/results.md`](eval_guard/results/results.md)).
 

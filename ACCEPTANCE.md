@@ -18,6 +18,7 @@ The Windows CI job (`windows-guard`) and the extended Linux job have **not run y
 | Fail closed | detector crash/timeout, policy error, unknown tool/session, unmatched call | `test_detector_crash_fails_closed`, `test_detector_timeout_fails_closed`, `test_policy_error_blocks`, `test_unknown_tool_and_unknown_session_are_blocked` |
 | Dashboard cannot be attacked by the documents it shows | autoescape, no `innerHTML` in `guard.js` | `test_attack_documents_cannot_inject_markup`, `test_guard_js_never_writes_markup` |
 | Measured against baselines | 60 attack / 61 benign self-written cases × 4 setups | `eval_guard/results/` (read the caveats in the README) |
+| Realistic estimate | 20 attacks + 20 normal tasks committed before their first run, not tuned: 11 blocked, 3 asked, 6 got through (4 leaked); 6 normal tasks wrongly blocked | `eval_guard/results/heldout.md` |
 
 ---
 
