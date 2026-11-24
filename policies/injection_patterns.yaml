@@ -22,6 +22,6 @@ patterns:
   - { id: act-to-address,  rule: INJECTION_TOOL_REFERENCE, score: 0.60, pattern: '\b(send|email|forward|mail)\s+(it|them|this|that|everything|all\s+of\s+it|the\s+\w+)\s+to\s+[\w.+-]+@[\w-]+\.[\w.]+' }
   - { id: act-destroy,     rule: INJECTION_TOOL_REFERENCE, score: 0.80, pattern: '\b(delete|remove|wipe|erase|destroy|drop)\b.{0,30}\b(all|every|the\s+entire|whole)\b.{0,30}\b(files?|folders?|database|tables?|repo(sitory)?|backups?|records)\b' }
   - { id: act-run,         rule: INJECTION_TOOL_REFERENCE, score: 0.65, pattern: '\b(run|execute|invoke|call)\b.{0,20}\b(the\s+)?(following|this)\s+(command|script|tool|function)\b' }
-  - { id: act-tool-name,   rule: INJECTION_TOOL_REFERENCE, score: 0.70, pattern: '\b(call|use|invoke|trigger)\s+(the\s+)?`?(send_email|read_file|delete_file|run_command|fetch_url|write_file|query)`?\b' }
+  - { id: act-tool-name,   rule: INJECTION_TOOL_REFERENCE, score: 0.70, pattern: '\b(call|invoke|trigger)\s+(the\s+)?`?(send_email|read_file|delete_file|run_command|fetch_url|write_file|query)`?\b' }
   # --- exfil beacons that render automatically ---
   - { id: beacon-md-img,   rule: EXFIL_URL_BEACON, score: 0.85, pattern: '!\[[^\]]{0,100}\]\(\s*https?://[^\s)]{1,300}[?&][^\s)=]{1,40}=[^\s)]{0,300}\)' }

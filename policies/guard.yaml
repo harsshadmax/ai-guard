@@ -19,6 +19,11 @@ roles:
     paths: ["**"]
     recipients: ["*@company.test", "*@partner.test"]
     max_calls_per_min: 600
+  mcp-agent:          # default role of `shadowguard mcp`: any upstream tool, secrets and system paths still guarded
+    tools: ["*"]
+    paths: ["**", "!**/.ssh/**", "!**/secrets/**"]
+    recipients: ["*@company.test", "*@partner.test"]
+    max_calls_per_min: 300
   agent-readonly:
     tools: [read_file, list_dir, fetch_url, get_weather]
     paths: ["docs/**", "reports/**", "downloads/**"]

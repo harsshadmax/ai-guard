@@ -89,7 +89,7 @@ def _findings(call: ToolCall, session: Session, spec, pol: dict) -> tuple[list[F
     ctx = {"tool": call.tool, "tool_class": tool_class, "role": session.role, "taint": session.taint.value,
            "dest_class": dest, "path_class": path_class}
     jobs = {
-        "pathrisk": lambda: pathrisk.scan(call.tool, call.args),
+        "pathrisk": lambda: pathrisk.scan(call.tool, call.args, workspace=spec.server == "builtin"),
         "exfil": lambda: exfil.scan(call.tool, call.args, pol) if tool_class == "external_send" else [],
         "secrets": lambda: secrets.scan_outbound(call.args) if tool_class in ("external_send", "exec") else [],
         "injection": lambda: _arg_injection(call),
@@ -99,7 +99,8 @@ def _findings(call: ToolCall, session: Session, spec, pol: dict) -> tuple[list[F
     prov, src_ids = provenance.findings_for_call(session, call.tool, call.args, tool_class)
     found += prov
     found += anomaly.scan(session, tool_class)
-    found += rbac.check(pol, session.role, call.tool, registry.rel_paths(call.args), registry.recipients(call.args),
+    found += rbac.check(pol, session.role, call.tool, registry.rel_paths(call.args, spec.server == "builtin"),
+                        registry.recipients(call.args),
                         session.call_times)
     return found, ctx, src_ids
 

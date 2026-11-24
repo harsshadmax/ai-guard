@@ -77,9 +77,12 @@ def recipients(args: dict) -> list[str]:
     return [d for d in exfil.destinations("", args) if "@" in d and "://" not in d]
 
 
-def rel_paths(args: dict) -> list[str]:
+def rel_paths(args: dict, workspace: bool = True) -> list[str]:
     out = []
     for p in pathrisk.paths_in(args):
+        if not workspace:
+            out.append(pathrisk._decoded(p).lstrip("/"))
+            continue
         target, rel = pathrisk.resolve(p)
         out.append(rel if target is not None else p)
     return out

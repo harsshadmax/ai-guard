@@ -1,8 +1,8 @@
-# Guard benchmark (eval 3d64bfd14a)
+# Guard benchmark (eval f4c662bd80)
 
 Self-written simulated corpus; obedient scripted agent; measured on one machine.
 
-60 attack cases, 61 benign cases, 4 setups, 39.5 s total.
+60 attack cases, 61 benign cases, 4 setups, 36.9 s total.
 
 | Setup | Attacks stopped | Attacks that leaked data | Benign tasks completed | Benign tasks that needed approval |
 |---|---|---|---|---|
@@ -42,4 +42,4 @@ Attacks stopped, by hiding technique:
 | white-text | 0/5 | 0/5 | 5/5 | 5/5 |
 | zero-width | 0/2 | 1/2 | 2/2 | 2/2 |
 
-Guard decision latency over 344 guarded calls: p50 1.26 ms, p95 2.04 ms, p99 6.76 ms (time from receiving the call to the verdict; tool execution excluded).
+Guard decision latency over 344 guarded calls: p50 1.2 ms, p95 2.19 ms, p99 6.37 ms (time from receiving the call to the verdict; tool execution excluded).

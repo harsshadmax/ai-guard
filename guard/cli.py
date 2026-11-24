@@ -73,7 +73,7 @@ def main(argv=None) -> int:
     lint.add_argument("path", nargs="?", default=str(config.GUARD_POLICY))
     sub.add_parser("verify-audit")
     m = sub.add_parser("mcp", help="run as an MCP stdio proxy in front of an upstream MCP server")
-    m.add_argument("--role", default="analyst")
+    m.add_argument("--role", default="mcp-agent")
     m.add_argument("upstream", nargs=argparse.REMAINDER)
     a = p.parse_args(argv)
 

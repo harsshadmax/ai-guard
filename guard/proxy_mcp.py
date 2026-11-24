@@ -1,6 +1,6 @@
 """MCP stdio proxy: put the guard between an MCP client (Claude Desktop, Claude Code, an IDE) and any MCP server.
 
-    shadowguard mcp --role analyst -- python -m some_mcp_server
+    shadowguard mcp --role mcp-agent -- python -m some_mcp_server
 
 The proxy forwards JSON-RPC messages unchanged, except:
   * tools/list responses: every tool is pinned (description + schema hash); rug pulls, poisoned descriptions
@@ -133,5 +133,5 @@ class Proxy:
         return 0
 
 
-def run_proxy(upstream_cmd: list[str], role: str = "analyst") -> int:
+def run_proxy(upstream_cmd: list[str], role: str = "mcp-agent") -> int:
     return Proxy(upstream_cmd, role=role).serve()

@@ -72,14 +72,14 @@ def resolve(p: str, root: Path | None = None) -> tuple[Path | None, str]:
     return target, rel.as_posix()
 
 
-def scan_paths(args: dict, root: Path | None = None) -> list[Finding]:
+def scan_paths(args: dict, root: Path | None = None, workspace: bool = True) -> list[Finding]:
     out = []
     for p in paths_in(args):
         d = _decoded(p)
         if ".." in d.split("/") or p != d and ".." in d:
             out.append(Finding(rule_id="PATH_TRAVERSAL", severity="high", score=0.95, detector="pathrisk",
                                message=f"Path traversal in {p!r}", evidence={"path": p}))
-        target, why = resolve(p, root)
+        target, why = resolve(p, root) if workspace else (True, "")
         if target is None:
             out.append(Finding(rule_id="PATH_ESCAPE", severity="high", score=1.0, detector="pathrisk",
                                message=f"{p!r}: {why}", evidence={"path": p}))
@@ -110,8 +110,10 @@ def scan_command(text: str, field: str = "command") -> list[Finding]:
     return out
 
 
-def scan(tool: str, args: dict, root: Path | None = None) -> list[Finding]:
-    out = scan_paths(args, root)
+def scan(tool: str, args: dict, root: Path | None = None, workspace: bool = True) -> list[Finding]:
+    """workspace=False for third-party (MCP) tools: their paths live on another server, so only traversal,
+    secret-file and system-path checks apply, not 'inside the demo workspace'."""
+    out = scan_paths(args, root, workspace)
     for field in ("command", "cmd", "sql", "script", "query"):
         if isinstance(args.get(field), str):
             out += scan_command(args[field], field)
