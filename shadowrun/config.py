@@ -23,5 +23,14 @@ PYPI_URL = "http://127.0.0.1:8080"  # the local pypiserver started by scripts/up
 REGISTRY_ALLOWLIST = [u.strip() for u in os.environ.get("SHADOWRUN_REGISTRY_ALLOWLIST", PYPI_URL).split(",") if u.strip()]
 
 TIMEOUT_S = 30
-UID = os.getuid()
-GID = os.getgid()
+UID = getattr(os, "getuid", lambda: 1000)()  # os.getuid does not exist on Windows
+GID = getattr(os, "getgid", lambda: 1000)()
+
+# --- AI tool guard (PS-CYB-02) ---
+GUARD_DIR = DATA / "guard"
+GUARD_ROOT = GUARD_DIR / "workspace"          # the simulated file system the guarded tools can see
+GUARD_SINK_LOG = GUARD_DIR / "sink.jsonl"     # where "sent" emails / uploads land (local only)
+GUARD_POLICY = ROOT / "policies" / "guard.yaml"
+GUARD_PATTERNS = ROOT / "policies" / "injection_patterns.yaml"
+GUARD_TIMEOUT_MS = int(os.environ.get("GUARD_TIMEOUT_MS", 200))
+GUARD_APPROVAL_TTL_S = int(os.environ.get("GUARD_APPROVAL_TTL_S", 120))
